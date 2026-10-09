@@ -133,7 +133,8 @@ async function probeKey(provider: PspProvider, secret: string): Promise<boolean>
 }
 
 export async function savePsp(userId: string, provider: PspProvider, rawSecret: string) {
-  await assertTipEligible(userId);
+  const e = await assertTipEligible(userId);
+  if (!e.isBusiness) return { ok: false as const, message: "Betaalproviders vereisen een goedgekeurde Bedrijfsbadge." };
   const { encryptionConfigured, seal } = await import("./crypto/secretbox.server");
   if (!encryptionConfigured()) return { ok: false as const, message: "Versleuteling is niet ingesteld op de server." };
   const secret = rawSecret.trim();
@@ -185,10 +186,12 @@ async function ownerOf(rawHandle: string): Promise<{ id: string; handle: string;
 export async function readPublicTipPage(rawHandle: string): Promise<PublicTipPage | null> {
   try {
     const owner = await ownerOf(rawHandle);
-    if (!owner || !(await tipEligibility(owner.id)).ok) return null;
+    const elig = owner ? await tipEligibility(owner.id) : null;
+    if (!owner || !elig?.ok) return null;
     const s = await readTipSettings(owner.id);
     if (!s.enabled || !isValidIban(s.iban) || !s.accountName) return null;
-    const psp = await listPsp(owner.id);
+    // PSP-knoppen alleen voor goedgekeurde bedrijven; QR + IBAN blijven altijd.
+    const psp = elig.isBusiness ? await listPsp(owner.id) : [];
     const mollie = psp.find((p) => p.provider === "mollie");
     const stripe = psp.find((p) => p.provider === "stripe");
     return {
