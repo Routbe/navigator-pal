@@ -102,6 +102,26 @@ function baseUrlFor(request?: Request): string {
 
 export { baseUrlFor as authBaseUrlFor };
 
+/** Canonical https origin (no trailing slash) the OAuth providers are registered on. */
+export function canonicalAuthOrigin(): string {
+  const raw = (env("BETTER_AUTH_URL") ?? env("NEXT_PUBLIC_APP_URL") ?? canonicalAppUrl()).trim();
+  const base = raw.replace(/\/+$/, "").replace(/\/api\/auth$/, "");
+  const url = new URL(/^https?:\/\//.test(base) ? base : `https://${base}`);
+  const local = /^(localhost|127\.0\.0\.1)$/.test(url.hostname);
+  return `${local ? url.protocol.replace(":", "") : "https"}://${url.host}`;
+}
+
+/** Exact GitLab redirect_uri: GITLAB_REDIRECT_URI override, else <canonical>/api/auth/callback/gitlab. */
+export function gitlabRedirectUri(): string {
+  const override = env("GITLAB_REDIRECT_URI")?.trim().replace(/\/+$/, "");
+  if (override) return override.replace(/^http:\/\/(?!localhost|127\.0\.0\.1)/, "https://");
+  return `${canonicalAuthOrigin()}/api/auth/callback/gitlab`;
+}
+
+function gitlabIssuer(): string {
+  return (env("GITLAB_ISSUER")?.trim() || "https://gitlab.com").replace(/\/+$/, "");
+}
+
 export function createRoutAuth(request?: Request) {
   const connectionString = env("DATABASE_URL");
   if (!connectionString) throw new Error("DATABASE_URL ontbreekt.");
@@ -116,7 +136,16 @@ export function createRoutAuth(request?: Request) {
   const github = pair("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET");
   if (github) socialProviders["github"] = github;
   const gitlab = pair("GITLAB_CLIENT_ID", "GITLAB_CLIENT_SECRET");
-  if (gitlab) socialProviders["gitlab"] = { ...gitlab, issuer: env("GITLAB_ISSUER") };
+  if (gitlab) {
+    // Pinned so GitLab (Group Application) always sees the exact registered URI,
+    // whatever host the visitor used. read_user is added by Better Auth itself.
+    socialProviders["gitlab"] = {
+      ...gitlab,
+      issuer: gitlabIssuer(),
+      redirectURI: gitlabRedirectUri(),
+      scope: ["openid", "profile", "email"],
+    };
+  }
   const apple = pair("APPLE_CLIENT_ID", "APPLE_CLIENT_SECRET");
   if (apple) socialProviders["apple"] = { ...apple, appBundleIdentifier: env("APPLE_APP_BUNDLE_IDENTIFIER") };
 
