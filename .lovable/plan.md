@@ -11,6 +11,7 @@ De Profile Hub wordt een veilige draft-first editor met expliciet publiceren, ge
 - Publieke profielen hebben een brede variant, maar uitlijning en enkele ontwerpinstellingen worden niet volledig toegepast.
 - Er zijn 12 footerstijlen, 7 bezoekseffecten, 152 avatarkaders en 17 decoraties. De algemene `customDesign`-schakelaar blokkeert nu fijnmazige instellingen.
 - Het volledige adres-/document-/periodieke herverificatiesysteem uit de aangeleverde richtlijn bestaat nog niet.
+- De huidige transparante favicon is slechts 48×48 pixels; de bestaande transparante 192×192 variant biedt dezelfde basis voor een scherpere faviconset.
 
 ## Fase 1 — Betrouwbare kernflow en echte concepten
 1. Voeg een aparte, eigenaar-gebonden conceptopslag toe voor alias- en geverifieerde profielen; bestaande live profieldata blijft de publieke bron.
@@ -20,6 +21,7 @@ De Profile Hub wordt een veilige draft-first editor met expliciet publiceren, ge
 5. Behoud de bestaande geschiedenisstack en Ctrl/Cmd+Z, Ctrl/Cmd+Y en Shift+Ctrl/Cmd+Z; history werkt uitsluitend op het concept.
 6. Audit en test alle servermatige opslagpaden voor geverifieerd profiel en privacy-alias, inclusief retries, navigatiewaarschuwing en herstel na een mislukte write.
 7. Verwijder “Primaire kanalen” uit Basisinformatie; sociale gegevens worden alleen nog via Links & Inhoudscomponenten beheerd.
+8. Behoud het huidige faviconontwerp en de transparante achtergrond, maar maak een scherpere faviconset op meerdere standaardformaten vanuit de beste bestaande bron, inclusief een hoge-resolutie 512×512 PNG; verander logo, kleur of uitsnede niet.
 
 ## Fase 2 — Invite, componenten, verificatie en statistieken
 1. Verwijder ReferralPanel en ReferralAnalytics uit de Profile Hub.
@@ -66,7 +68,8 @@ De Profile Hub wordt een veilige draft-first editor met expliciet publiceren, ge
 2. Test rechten, servervalidatie, uploads, signed URLs, concept/publicatieconflicten, trusttermijnen, adminrollen en publieke datalekken.
 3. Voeg gerichte unit-, integratie- en route-smoketests toe en doorloop de hoofdflows als echt lid én admin.
 4. Controleer mobiel en desktop visueel, toetsenbordbediening, reduced motion, lange teksten, foutstatussen en donkere/lichte modus.
-5. Werk `ENVIRONMENT.md` en `.env.example` bij en lever één Vercel-checklist op met alleen noodzakelijke variabelen.
+5. Controleer favicontransparantie, scherpe randen en browser-/PWA-weergave op alle gegenereerde formaten.
+6. Werk `ENVIRONMENT.md` en `.env.example` bij en lever één Vercel-checklist op met alleen noodzakelijke variabelen.
 
 ## Technische uitgangspunten
 - Database: uitsluitend Neon; runtime blijft `rout_app`, migraties blijven eigenaar-only.
