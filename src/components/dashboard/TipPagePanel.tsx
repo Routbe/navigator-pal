@@ -202,7 +202,17 @@ export function TipPagePanel() {
         {busy && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />} Opslaan
       </Button>
 
-      <PspPanel psp={setup.psp} isBusiness={setup.eligibility.isBusiness} onChanged={refresh} />
+      {setup.eligibility.isBusiness ? (
+        <PspPanel psp={setup.psp} isBusiness onChanged={refresh} />
+      ) : (
+        <section className="flex items-start gap-2 rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+          <KeyRound className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <p>
+            <strong className="text-foreground">Betaalproviders (PSP)</strong> zijn alleen beschikbaar met een goedgekeurde
+            Bedrijfsbadge. Je steunpagina werkt altijd met de gratis betaal-QR en IBAN.
+          </p>
+        </section>
+      )}
     </div>
   );
 }
