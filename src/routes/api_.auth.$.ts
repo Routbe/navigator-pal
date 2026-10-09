@@ -105,6 +105,23 @@ export async function handleAuthRequest({ request }: { request: Request }) {
       return providerNotConfigured(provider, missingProviderKeys(provider));
     }
 
+    if (provider === "gitlab" && SOCIAL_BODY_PATHS.has(relativePath)) {
+      const { canonicalAuthOrigin, gitlabRedirectUri } = await import("@/lib/better-auth.server");
+      const target = new URL(gitlabRedirectUri()).host;
+      const host = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() || request.headers.get("host") || "";
+      const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host);
+      if (host && !local && host !== target) {
+        // State cookie lives on the request host; GitLab returns to the canonical
+        // host. Start the flow there instead of failing with state_mismatch.
+        console.warn(`[auth] gitlab sign-in on ${host}; sending to ${canonicalAuthOrigin()}`);
+        return Response.json(
+          { url: `${canonicalAuthOrigin()}/auth`, redirect: true },
+          { headers: { "cache-control": "no-store" } },
+        );
+      }
+      console.info(`[auth] gitlab redirect_uri=${gitlabRedirectUri()}`);
+    }
+
     // Self-hosted ALTCHA proof required before Better Auth runs: no user is
     // created and no mail is sent without it. Social/OAuth stay open.
     if (request.method === "POST" && ALTCHA_PATHS.has(relativePath)) {
